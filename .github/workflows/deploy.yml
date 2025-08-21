@@ -1,0 +1,28 @@
+name: Deploy Infra
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    tags: [ "v*" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout infra
+        uses: actions/checkout@v4
+
+      - name: Copy repo to server and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd ~/infra && git fetch --all && git reset --hard origin/main
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
+            cd ~/infra
+            make deploy
