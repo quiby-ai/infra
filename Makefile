@@ -1,5 +1,7 @@
 PROJECT=quiby
 
+ENVFILE=--env-file env/.env
+
 COMPOSE= \
   -f compose/traefik.yml \
   -f compose/data.yml \
@@ -12,22 +14,22 @@ network:
 	docker network inspect quiby_net >/dev/null 2>&1 || docker network create quiby_net
 
 up: network
-	docker compose $(COMPOSE) up -d
+	docker compose $(ENVFILE) $(COMPOSE) up -d
 
 down:
-	docker compose $(COMPOSE) down
+	docker compose $(ENVFILE) $(COMPOSE) down
 
 pull:
-	docker compose $(COMPOSE) pull
+	docker compose $(ENVFILE) $(COMPOSE) pull
 
 deploy: pull up
-	docker compose $(COMPOSE) ps
+	docker compose $(ENVFILE) $(COMPOSE) ps
 
 ps:
-	docker compose $(COMPOSE) ps
+	docker compose $(ENVFILE) $(COMPOSE) ps
 
 logs:
-	docker compose $(COMPOSE) logs -f --tail=200
+	docker compose $(ENVFILE) $(COMPOSE) logs -f --tail=200
 
 rollback:
 	@[ -n "$(TAG)" ] || (echo "Usage: make rollback TAG=v1.2.3"; exit 1)
