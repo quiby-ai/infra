@@ -1,0 +1,32 @@
+name: quiby
+
+networks:
+  quiby_net:
+    external: true
+
+services:
+  traefik:
+    image: traefik:v3.1
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.tlschallenge=true
+      - --certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --api.dashboard=true
+    ports:
+      - "80:80"
+      - "443:443"
+    networks: [quiby_net]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/letsencrypt:/letsencrypt
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true

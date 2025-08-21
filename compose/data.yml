@@ -1,0 +1,22 @@
+name: quiby
+
+networks:
+  quiby_net:
+    external: true
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-quiby}
+      POSTGRES_USER: ${POSTGRES_USER:-quiby}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quiby_password}
+    volumes:
+      - ${POSTGRES_VOLUME}:/var/lib/postgresql/data
+    networks: [quiby_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quiby} -d ${POSTGRES_DB:-quiby}"]
+      interval: 15s
+      timeout: 5s
+      retries: 10

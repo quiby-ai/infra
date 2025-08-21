@@ -1,0 +1,78 @@
+name: quiby
+
+networks:
+  quiby_net:
+    external: true
+
+services:
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    env_file: env/.env
+    restart: unless-stopped
+    networks: [quiby_net]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=quiby_net
+      - traefik.http.routers.front.rule=Host(`${FRONTEND_DOMAIN}`)
+      - traefik.http.routers.front.entrypoints=websecure
+      - traefik.http.routers.front.tls.certresolver=le
+      - traefik.http.routers.front.middlewares=sec-headers@file,compress@file
+      - traefik.http.services.front.loadbalancer.server.port=80
+
+  api-gateway:
+    image: ${API_GATEWAY_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=quiby_net
+      - traefik.http.routers.api.rule=Host(`${API_GATEWAY_DOMAIN}`)
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.tls.certresolver=le
+      - traefik.http.routers.api.middlewares=sec-headers@file,compress@file
+      - traefik.http.services.api.loadbalancer.server.port=8080
+
+  auth-service:
+    image: ${AUTH_SERVICE_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres]
+
+  saga-orchestrator:
+    image: ${SAGA_ORCHESTRATOR_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres, kafka]
+
+  review-ingestor:
+    image: ${REVIEW_INGESTOR_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres, kafka]
+
+  review-preprocessor:
+    image: ${REVIEW_PREPROCESSOR_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres, kafka]
+
+  notifier:
+    image: ${NOTIFIER_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres, kafka]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=quiby_net
+      - traefik.http.routers.notifier.rule=Host(`${NOTIFIER_DOMAIN}`)
+      - traefik.http.routers.notifier.entrypoints=websecure
+      - traefik.http.routers.notifier.tls.certresolver=le
+      - traefik.http.routers.notifier.middlewares=sec-headers@file,compress@file
+      - traefik.http.services.notifier.loadbalancer.server.port=8888
