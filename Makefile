@@ -36,3 +36,7 @@ rollback:
 
 deploy: pull up
 	$(MAKE) ps
+
+shell:
+	@[ -n "$(SERVICE)" ] || (echo "Usage: make shell SERVICE=<service-name>"; echo "Example: make shell SERVICE=auth-service"; exit 1)
+	$(DC) $(COMPOSE_FILES) exec $(SERVICE) sh
