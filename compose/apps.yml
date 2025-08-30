@@ -62,6 +62,13 @@ services:
     restart: unless-stopped
     depends_on: [postgres, kafka]
 
+  review-vectorizer:
+    image: ${REVIEW_VECTORIZER_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres, kafka]
+
   notifier:
     image: ${NOTIFIER_IMAGE}
     env_file: env/.env
