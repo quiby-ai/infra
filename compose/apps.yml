@@ -83,3 +83,10 @@ services:
       - traefik.http.routers.notifier.tls.certresolver=le
       - traefik.http.routers.notifier.middlewares=sec-headers@file,compress@file
       - traefik.http.services.notifier.loadbalancer.server.port=8888
+
+  review-rag:
+    image: ${REVIEW_RAG_IMAGE}
+    env_file: env/.env
+    networks: [quiby_net]
+    restart: unless-stopped
+    depends_on: [postgres]
